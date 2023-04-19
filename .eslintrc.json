@@ -12,6 +12,8 @@
       "eslint-comments/no-use": "off",
       "import/no-namespace": "off",
       "no-unused-vars": "off",
+      "filenames/match-regex": [ 2, "^(\\w+)([A-Z][a-z0-9]+)*$", true ],
+      "filenames/match-exported": [ 2, "pascal" ],
       "@typescript-eslint/no-unused-vars": "error",
       "@typescript-eslint/explicit-member-accessibility": ["error", {"accessibility": "no-public"}],
       "@typescript-eslint/no-require-imports": "error",
