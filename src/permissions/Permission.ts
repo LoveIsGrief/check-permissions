@@ -1,3 +1,3 @@
 export default abstract class Permission {
-  abstract async hasPermission(): Promise<boolean>
+  abstract hasPermission(): Promise<boolean>
 }

@@ -7,7 +7,7 @@ export const REGISTRY = {
   PullApprovalCount,
   PullCodeownersPercentage,
   PullCodeownersTotal
-} as Record<string, new (param: any) => Permission>
+} as Record<string, new (param: unknown) => Permission>
 
 export type ConfigType = Object & {
   [K in keyof typeof REGISTRY]?: ConstructorParameters<(typeof REGISTRY)[K]>[0]

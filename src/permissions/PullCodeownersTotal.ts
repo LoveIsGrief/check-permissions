@@ -1,9 +1,5 @@
 import Permission from './Permission'
-import {
-  getChangedFiles,
-  getPrNumber,
-  getRecentApprovals
-} from '../utils/pullRequest'
+import {getChangedFiles, getPrNumber, getRecentApprovals} from '../utils/pullRequest'
 import core from '@actions/core'
 import Codeowners from 'codeowners'
 
@@ -47,9 +43,7 @@ export default class PullCodeownersTotal extends Permission {
 
   mapCodeOwners(changedFiles: string[]): FileOwnerMap {
     const co = new Codeowners()
-    return new Map(
-      changedFiles.map(changedFile => [changedFile, co.getOwner(changedFile)])
-    )
+    return new Map(changedFiles.map(changedFile => [changedFile, co.getOwner(changedFile)]))
   }
 
   /**
@@ -59,11 +53,7 @@ export default class PullCodeownersTotal extends Permission {
    * @param codeOwners CODEOWNERS of the files
    * @param approvers who approved the PR
    */
-  isFileApproved(
-    path: string,
-    codeOwners: string[],
-    approvers: Set<string>
-  ): boolean {
+  isFileApproved(path: string, codeOwners: string[], approvers: Set<string>): boolean {
     // Changed a file that isn't owned
     if (codeOwners.length === 0) {
       return true
@@ -85,6 +75,7 @@ export default class PullCodeownersTotal extends Permission {
    * @param approverCount How many code owners approved
    * @param codeowners The code owners themselves
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   hasMinimumApproval(approverCount: number, codeowners: string[]): boolean {
     return approverCount > this.minApprovers
   }
