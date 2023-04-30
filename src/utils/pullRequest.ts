@@ -33,7 +33,16 @@ export function getPrNumber(): number {
  * Gets the 100 last approved reviews of a pull request
  */
 export async function getReviews(prNumber: number): Promise<Review[]> {
-  const response = await github.getOctokit('').graphql({
+  interface Response {
+    repository: {
+      pullRequest: {
+        reviews: {
+          nodes: _Review[]
+        }
+      }
+    }
+  }
+  const response: Response = await github.getOctokit('').graphql({
     query: `
         query($repoName: String!, $repoOwner: String!, $prNumber: Int!){
           repository(name: $repoName, owner: $repoOwner) {
@@ -56,7 +65,7 @@ export async function getReviews(prNumber: number): Promise<Review[]> {
     repoOwner: github.context.repo.owner,
     prNumber
   })
-  const reviews: _Review[] = response.repository.pullRequest.reviews.nodes
+  const reviews = response.repository.pullRequest.reviews.nodes
   return reviews.map(review => {
     return {
       ...review,
@@ -69,7 +78,17 @@ export async function getReviews(prNumber: number): Promise<Review[]> {
  * When was the last push done to the PR
  */
 export async function getLastPushedDate(prNumber: number): Promise<Date> {
-  const response = await github.getOctokit('').graphql({
+  interface Response {
+    repository: {
+      pullRequest: {
+        commits: {
+          nodes: Commit[]
+        }
+      }
+    }
+  }
+
+  const response: Response = await github.getOctokit('').graphql({
     query: `
         query($repoName: String!, $repoOwner: String!, $prNumber: Int!){
           repository(name: $repoName, owner: $repoOwner) {
@@ -93,7 +112,7 @@ export async function getLastPushedDate(prNumber: number): Promise<Date> {
     repoOwner: github.context.repo.owner,
     prNumber
   })
-  const commit: Commit = response.repository.pullRequest.nodes[0]
+  const commit: Commit = response.repository.pullRequest.commits.nodes[0]
 
   return new Date(commit.pushedDate)
 }
@@ -133,7 +152,21 @@ export async function getChangedFiles(prNumber: number): Promise<string[]> {
         }
       }
     }`
-  let response = await octokit.graphql({
+
+  interface Response {
+    repository: {
+      pullRequest: {
+        files: {
+          nodes: ChangedFile[]
+          pageInfo: {
+            hasNextPage: boolean
+            endCursor: string
+          }
+        }
+      }
+    }
+  }
+  let response: Response = await octokit.graphql({
     query,
     repoName: github.context.repo.repo,
     repoOwner: github.context.repo.owner,
