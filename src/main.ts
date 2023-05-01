@@ -1,30 +1,29 @@
 import * as core from '@actions/core'
-import {wait} from './wait'
-import {ConfigType, REGISTRY, getConfigEntries} from './permissions'
+import {REGISTRY} from './permissions'
+import {ConfigType, getConfigEntries, readConfigFile} from './utils/config'
 
 async function run(): Promise<void> {
-  // TODO: Read configuration from core
-  const config: ConfigType = {}
-  for (const [klassName, configElement] of getConfigEntries(config)) {
+  const configs: ConfigType[] = await readConfigFile(core.getInput('config_file'))
+  for (const config of configs) {
+    // Only get first element of config
+    const configEntries = getConfigEntries(config)
+    if (configEntries.length === 0) {
+      continue
+    }
+    const [klassName, configElement] = configEntries[0]
     const permissionClass = REGISTRY[klassName]
     if (permissionClass === undefined) {
       core.setFailed(`Unknown permission class ${klassName}`)
       return
     }
+
+    // Check the permission
     const permission = new permissionClass(configElement)
-    await permission.hasPermission()
-  }
-  try {
-    const ms: string = core.getInput('milliseconds')
-    core.debug(`Waiting ${ms} milliseconds ...`) // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
-
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
-
-    core.setOutput('time', new Date().toTimeString())
-  } catch (error) {
-    if (error instanceof Error) core.setFailed(error.message)
+    const hasPermission = await permission.hasPermission()
+    if (!hasPermission) {
+      core.setFailed(`${klassName} returned that it has no permission`)
+      break
+    }
   }
 }
 
