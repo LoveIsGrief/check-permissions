@@ -6,6 +6,9 @@ inputs:
     required: true
     description: 'A YAML file with a list of permissions and their args'
     default: ".github/permissions.yml"
+  token:
+    required: true
+    description: 'The github token to be used when making API requests'
 runs:
   using: 'node16'
   main: 'dist/index.js'

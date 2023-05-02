@@ -1,4 +1,5 @@
 import github from '@actions/github'
+import {OctokitType} from './github'
 
 export interface Author {
   login: string
@@ -32,7 +33,7 @@ export function getPrNumber(): number {
 /**
  * Gets the 100 last approved reviews of a pull request
  */
-export async function getReviews(prNumber: number): Promise<Review[]> {
+export async function getReviews(prNumber: number, octokit: OctokitType): Promise<Review[]> {
   interface Response {
     repository: {
       pullRequest: {
@@ -42,7 +43,7 @@ export async function getReviews(prNumber: number): Promise<Review[]> {
       }
     }
   }
-  const response: Response = await github.getOctokit('').graphql({
+  const response: Response = await octokit.graphql({
     query: `
         query($repoName: String!, $repoOwner: String!, $prNumber: Int!){
           repository(name: $repoName, owner: $repoOwner) {
@@ -77,7 +78,7 @@ export async function getReviews(prNumber: number): Promise<Review[]> {
 /**
  * When was the last push done to the PR
  */
-export async function getLastPushedDate(prNumber: number): Promise<Date> {
+export async function getLastPushedDate(prNumber: number, octokit: OctokitType): Promise<Date> {
   interface Response {
     repository: {
       pullRequest: {
@@ -88,7 +89,7 @@ export async function getLastPushedDate(prNumber: number): Promise<Date> {
     }
   }
 
-  const response: Response = await github.getOctokit('').graphql({
+  const response: Response = await octokit.graphql({
     query: `
         query($repoName: String!, $repoOwner: String!, $prNumber: Int!){
           repository(name: $repoName, owner: $repoOwner) {
@@ -120,9 +121,12 @@ export async function getLastPushedDate(prNumber: number): Promise<Date> {
 /**
  * Gets the list of PR reviews that approved a PR since the last push to it
  */
-export async function getRecentApprovals(prNumber: number): Promise<Review[]> {
-  const reviews = await getReviews(prNumber)
-  const lastPushedDate = await getLastPushedDate(prNumber)
+export async function getRecentApprovals(
+  prNumber: number,
+  octokit: OctokitType
+): Promise<Review[]> {
+  const reviews = await getReviews(prNumber, octokit)
+  const lastPushedDate = await getLastPushedDate(prNumber, octokit)
   return reviews.filter(review => review.publishedAt > lastPushedDate)
 }
 
@@ -133,8 +137,7 @@ interface ChangedFile {
 /**
  * Which files were changed in this PR
  */
-export async function getChangedFiles(prNumber: number): Promise<string[]> {
-  const octokit = github.getOctokit('')
+export async function getChangedFiles(prNumber: number, octokit: OctokitType): Promise<string[]> {
   const query = `
     query ($repoName: String!, $repoOwner: String!, $prNumber: Int!, $page: String!) {
       repository(name: $repoName, owner: $repoOwner) {
