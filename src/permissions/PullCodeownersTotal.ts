@@ -4,7 +4,10 @@ import core from '@actions/core'
 import Codeowners from 'codeowners'
 import {getOctoKit} from '../utils/github'
 
-type FileOwnerMap = Map<string, string[]>
+type FilePath = string
+type FileOwner = string
+/** Mapping of file to its owners in the CodeOwner file (if any) */
+type FileOwnerMap = Map<FilePath, FileOwner[]>
 
 /**
  * Checks whether each file has been approved by a minimum number of its owners
@@ -22,6 +25,7 @@ export default class PullCodeownersTotal extends Permission {
     const octokit = getOctoKit()
     const approvals = await getRecentApprovals(prNumber, octokit)
 
+    /** Who approved the PR */
     const approvers = new Set(approvals.map(review => review.author.login))
 
     const changedFiles = await getChangedFiles(prNumber, octokit)
@@ -42,7 +46,10 @@ export default class PullCodeownersTotal extends Permission {
     return true
   }
 
-  mapCodeOwners(changedFiles: string[]): FileOwnerMap {
+  /**
+   * Maps each changed file to a list of owners from the codeowners file
+   */
+  mapCodeOwners(changedFiles: FilePath[]): FileOwnerMap {
     const co = new Codeowners()
     return new Map(changedFiles.map(changedFile => [changedFile, co.getOwner(changedFile)]))
   }
