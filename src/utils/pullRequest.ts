@@ -194,8 +194,8 @@ export async function getChangedFiles(
     const page = response.repository.pullRequest.files.pageInfo.endCursor
     response = await octokit.graphql({
       query,
-      repoName: github.context.repo.repo,
-      repoOwner: github.context.repo.owner,
+      repoName,
+      repoOwner,
       prNumber,
       page
     })
