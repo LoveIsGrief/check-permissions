@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDirs": [
+      "src",
+      "__tests__"
+    ],                       /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
+  },
+  "exclude": ["node_modules"]
+}

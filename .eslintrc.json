@@ -5,14 +5,14 @@
     "parserOptions": {
       "ecmaVersion": 9,
       "sourceType": "module",
-      "project": "./tsconfig.json"
+      "project": "./tsconfig.test.json"
     },
     "rules": {
       "i18n-text/no-en": "off",
       "eslint-comments/no-use": "off",
       "import/no-namespace": "off",
       "no-unused-vars": "off",
-      "filenames/match-regex": [ 2, "^(\\w+)([A-Z][a-z0-9]+)*$", true ],
+      "filenames/match-regex": [ 2, "^(\\w+)([A-Z][a-z0-9]+\\.?)*(\\.test)?$", true ],
       "filenames/match-exported": [ 2, "pascal" ],
       "@typescript-eslint/no-unused-vars": "error",
       "@typescript-eslint/explicit-member-accessibility": ["error", {"accessibility": "no-public"}],
