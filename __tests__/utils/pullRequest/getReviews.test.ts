@@ -1,5 +1,5 @@
 import {expect, jest, test} from '@jest/globals'
-import {getReviews, GetReviewsResponse} from '../../../src/utils/pullRequest'
+import {getReviews, GetReviewsResponse, Review} from '../../../src/utils/pullRequest'
 import {OctokitType} from '../../../src/utils/github'
 
 test('getReviews success', async function () {
@@ -15,7 +15,10 @@ test('getReviews success', async function () {
     }
   })
   const reviews = await getReviews(1, 'someRepo', 'someOwner', octokit)
-  expect(reviews).toStrictEqual([{author: {login: 'Jayaz'}, publishedAt: date, state: 'APPROVED'}])
+  const expectedReviews: Review[] = [
+    {author: {login: 'Jayaz'}, publishedAt: date, state: 'APPROVED'}
+  ]
+  expect(reviews).toStrictEqual(expectedReviews)
 })
 
 /**
