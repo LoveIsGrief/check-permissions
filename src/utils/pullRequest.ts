@@ -137,14 +137,32 @@ export async function getRecentApprovals(
   return reviews.filter(review => review.publishedAt > lastPushedDate)
 }
 
-interface ChangedFile {
+export interface ChangedFile {
   path: string
+}
+export interface ChangedFilesResponse {
+  repository: {
+    pullRequest: {
+      files: {
+        nodes: ChangedFile[]
+        pageInfo: {
+          hasNextPage: boolean
+          endCursor?: string
+        }
+      }
+    }
+  }
 }
 
 /**
  * Which files were changed in this PR
  */
-export async function getChangedFiles(prNumber: number, octokit: OctokitType): Promise<string[]> {
+export async function getChangedFiles(
+  prNumber: number,
+  repoName: string,
+  repoOwner: string,
+  octokit: OctokitType
+): Promise<string[]> {
   const query = `
     query ($repoName: String!, $repoOwner: String!, $prNumber: Int!, $page: String!) {
       repository(name: $repoName, owner: $repoOwner) {
@@ -163,23 +181,10 @@ export async function getChangedFiles(prNumber: number, octokit: OctokitType): P
       }
     }`
 
-  interface Response {
-    repository: {
-      pullRequest: {
-        files: {
-          nodes: ChangedFile[]
-          pageInfo: {
-            hasNextPage: boolean
-            endCursor: string
-          }
-        }
-      }
-    }
-  }
-  let response: Response = await octokit.graphql({
+  let response: ChangedFilesResponse = await octokit.graphql({
     query,
-    repoName: github.context.repo.repo,
-    repoOwner: github.context.repo.owner,
+    repoName,
+    repoOwner,
     prNumber
   })
 

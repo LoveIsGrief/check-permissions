@@ -3,6 +3,7 @@ import {getChangedFiles, getPrNumber, getRecentApprovals} from '../utils/pullReq
 import core from '@actions/core'
 import Codeowners from 'codeowners'
 import {getOctoKit} from '../utils/github'
+import github from '@actions/github'
 
 type FilePath = string
 type FileOwner = string
@@ -23,12 +24,14 @@ export default class PullCodeownersTotal extends Permission {
   async hasPermission(): Promise<boolean> {
     const prNumber = getPrNumber()
     const octokit = getOctoKit()
-    const approvals = await getRecentApprovals(prNumber, octokit)
+    const repoName = github.context.repo.repo
+    const repoOwner = github.context.repo.owner
+    const approvals = await getRecentApprovals(prNumber, repoName, repoOwner, octokit)
 
     /** Who approved the PR */
     const approvers = new Set(approvals.map(review => review.author.login))
 
-    const changedFiles = await getChangedFiles(prNumber, octokit)
+    const changedFiles = await getChangedFiles(prNumber, repoName, repoOwner, octokit)
     const fileToOwner = this.mapCodeOwners(changedFiles)
     const unapprovedFiles = []
     for (const [file, owners] of fileToOwner) {

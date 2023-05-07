@@ -1,6 +1,6 @@
-import {expect, jest, test} from '@jest/globals'
+import {expect, test} from '@jest/globals'
 import {getReviews, GetReviewsResponse, Review} from '../../../src/utils/pullRequest'
-import {OctokitType} from '../../../src/utils/github'
+import {mockGraphQlOctokit} from '../../common'
 
 test('getReviews success', async function () {
   const dateString = '2023-05-05T18:38:34.094Z'
@@ -20,14 +20,3 @@ test('getReviews success', async function () {
   ]
   expect(reviews).toStrictEqual(expectedReviews)
 })
-
-/**
- * Make an octokit object with a graphql method that returns a given response
- */
-function mockGraphQlOctokit<T>(response: T): OctokitType {
-  const graphQlMock = jest.fn()
-  graphQlMock.mockImplementation(async _ => response)
-  return {
-    graphql: graphQlMock as unknown as OctokitType['graphql']
-  } as unknown as OctokitType
-}
