@@ -30,20 +30,25 @@ export function getPrNumber(): number {
   return number
 }
 
-/**
- * Gets the 100 last approved reviews of a pull request
- */
-export async function getReviews(prNumber: number, octokit: OctokitType): Promise<Review[]> {
-  interface Response {
-    repository: {
-      pullRequest: {
-        reviews: {
-          nodes: _Review[]
-        }
+export interface GetReviewsResponse {
+  repository: {
+    pullRequest: {
+      reviews: {
+        nodes: _Review[]
       }
     }
   }
-  const response: Response = await octokit.graphql({
+}
+/**
+ * Gets the 100 last approved reviews of a pull request
+ */
+export async function getReviews(
+  prNumber: number,
+  repoName: string,
+  repoOwner: string,
+  octokit: OctokitType
+): Promise<Review[]> {
+  const response: GetReviewsResponse = await octokit.graphql({
     query: `
         query($repoName: String!, $repoOwner: String!, $prNumber: Int!){
           repository(name: $repoName, owner: $repoOwner) {
@@ -62,8 +67,8 @@ export async function getReviews(prNumber: number, octokit: OctokitType): Promis
             }
           }
         }`,
-    repoName: github.context.repo.repo,
-    repoOwner: github.context.repo.owner,
+    repoName,
+    repoOwner,
     prNumber
   })
   const reviews = response.repository.pullRequest.reviews.nodes
@@ -123,9 +128,11 @@ export async function getLastPushedDate(prNumber: number, octokit: OctokitType):
  */
 export async function getRecentApprovals(
   prNumber: number,
+  repoName: string,
+  repoOwner: string,
   octokit: OctokitType
 ): Promise<Review[]> {
-  const reviews = await getReviews(prNumber, octokit)
+  const reviews = await getReviews(prNumber, repoName, repoOwner, octokit)
   const lastPushedDate = await getLastPushedDate(prNumber, octokit)
   return reviews.filter(review => review.publishedAt > lastPushedDate)
 }
