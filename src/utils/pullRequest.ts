@@ -5,7 +5,7 @@ export interface Author {
   login: string
 }
 
-interface _Review {
+export interface ReviewResponse {
   state: string
   author: Author
   publishedAt: string
@@ -34,7 +34,7 @@ export interface GetReviewsResponse {
   repository: {
     pullRequest: {
       reviews: {
-        nodes: _Review[]
+        nodes: ReviewResponse[]
       }
     }
   }
@@ -80,21 +80,25 @@ export async function getReviews(
   })
 }
 
-/**
- * When was the last push done to the PR
- */
-export async function getLastPushedDate(prNumber: number, octokit: OctokitType): Promise<Date> {
-  interface Response {
-    repository: {
-      pullRequest: {
-        commits: {
-          nodes: Commit[]
-        }
+export interface LastPushedDateResponse {
+  repository: {
+    pullRequest: {
+      commits: {
+        nodes: Commit[]
       }
     }
   }
-
-  const response: Response = await octokit.graphql({
+}
+/**
+ * When was the last push done to the PR
+ */
+export async function getLastPushedDate(
+  prNumber: number,
+  repoName: string,
+  repoOwner: string,
+  octokit: OctokitType
+): Promise<Date> {
+  const response: LastPushedDateResponse = await octokit.graphql({
     query: `
         query($repoName: String!, $repoOwner: String!, $prNumber: Int!){
           repository(name: $repoName, owner: $repoOwner) {
@@ -114,8 +118,8 @@ export async function getLastPushedDate(prNumber: number, octokit: OctokitType):
           }
         }
     `,
-    repoName: github.context.repo.repo,
-    repoOwner: github.context.repo.owner,
+    repoName,
+    repoOwner,
     prNumber
   })
   const commit: Commit = response.repository.pullRequest.commits.nodes[0]
@@ -133,8 +137,8 @@ export async function getRecentApprovals(
   octokit: OctokitType
 ): Promise<Review[]> {
   const reviews = await getReviews(prNumber, repoName, repoOwner, octokit)
-  const lastPushedDate = await getLastPushedDate(prNumber, octokit)
-  return reviews.filter(review => review.publishedAt > lastPushedDate)
+  const lastPushedDate = await getLastPushedDate(prNumber, repoName, repoOwner, octokit)
+  return reviews.filter(review => review.publishedAt >= lastPushedDate)
 }
 
 export interface ChangedFile {
